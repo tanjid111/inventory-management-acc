@@ -1,10 +1,11 @@
-const Product = require('../models/Product');
-const { getProductsService, createProductService, updateProductByIdService, bulkUpdateProductService, deleteProductByIdService, bulkDeleteProductService } = require('../services/product.service');
+const { getStocksService, createStockService, updateStockByIdService, bulkUpdateStockService, deleteStockByIdService, bulkDeleteStockService, getStockByIdService } = require('../services/stock.service');
 
-exports.getProducts = async (req, res, next) => {
+exports.getStocks = async (req, res, next) => {
     try {
         //price:{$gt:50}
         let filters = { ...req.query };
+        // /stock?sortBy=price
+
         //--------------sort, page, limit -> exclude
         const excludeFields = ['sort', 'page', 'limit'];
         excludeFields.forEach(field => delete filters[field])
@@ -46,7 +47,7 @@ exports.getProducts = async (req, res, next) => {
         }
         // console.log('original object', req.query);
         // console.log('query object', filters);
-        const products = await getProductsService(filters, queries); //get all products
+        const products = await getStocksService(filters, queries); //get all products
 
         // const products = await Product.find({ _id: "632024b264457e80c047e25e" }); //get by single id
         //const products = await Product.find({ _id: "632024b264457e80c047e25e", name: "dal" }); //get by single id and name, and operator
@@ -82,121 +83,123 @@ exports.getProducts = async (req, res, next) => {
     }
 }
 
-exports.createProduct = async (req, res, next) => {
-
-    try {
-        //save or create
-
-        //--------------save
-        // const product = new Product(req.body)
-        // instance creation -> do something ->save()
-        // if (product.quantity == 0) {
-        //   product.status = 'out-of-stock'
-        // }
-        // const result = await product.save()
-
-        //-----------calling instance method
-
-        // result.logger()
-        //-------------create
-        const result = await createProductService(req.body);
-
-        res.status(200).json({
-            status: 'success',
-            message: 'Data inserted successfully!',
-            data: result
-        })
-    } catch (error) {
-        res.status(400).json({
-            status: 'fail',
-            message: 'Data is not inserted',
-            error: error.message
-        })
-    }
-}
-
-exports.updateProductById = async (req, res, next) => {
+exports.getStockById = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const result = await updateProductByIdService(id, req.body);
-        res.status(200).json({
-            status: 'success',
-            message: 'Data updated successfully!'
-        })
-    } catch (error) {
-        res.status(400).json({
-            status: 'fail',
-            message: "Couldn't update the product",
-            error: error.message
-        })
-    }
-}
-
-exports.bulkUpdateProduct = async (req, res, next) => {
-    try {
-        const result = await bulkUpdateProductService(req.body);
-        res.status(200).json({
-            status: 'success',
-            message: 'Data updated successfully!'
-        })
-    } catch (error) {
-        res.status(400).json({
-            status: 'fail',
-            message: "Couldn't update the product",
-            error: error.message
-        })
-    }
-}
-
-exports.deleteProductById = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const result = await deleteProductByIdService(id);
-
-        //--------------do this for checking if the product exist. Do same for update
-        if (!result.deletedCount) {
-            return res.status(400).json({
-                status: "fail",
-                error: "Could not delete the product"
+        const stock = await getStockByIdService(id)
+        if (!stock) {
+            res.status(400).json({
+                status: 'fail',
+                error: 'Cannot get the stock with this id',
             })
         }
 
         res.status(200).json({
             status: 'success',
-            message: 'Data deleted successfully!'
+            data: stock
         })
+
     } catch (error) {
         res.status(400).json({
             status: 'fail',
-            message: "Couldn't delete the product",
+            message: 'Cannot get the stock',
             error: error.message
         })
     }
 }
 
-exports.bulkDeleteProduct = async (req, res, next) => {
+exports.createStock = async (req, res, next) => {
+
     try {
-        const result = await bulkDeleteProductService(req.body.ids);
+        //save or create
+
+        const result = await createStockService(req.body);
+
         res.status(200).json({
             status: 'success',
-            message: 'Given products deleted successfully'
+            message: 'Stock created successfully!',
+            data: result
         })
     } catch (error) {
         res.status(400).json({
             status: 'fail',
-            message: "Couldn't delete the given products",
+            message: 'Stock is not inserted',
             error: error.message
         })
     }
 }
 
-exports.fileUpload = async (req, res) => {
+exports.updateStockById = async (req, res, next) => {
     try {
-        //single file
-        // res.status(200).json(req.file)
-        //multiple files
-        res.status(200).json(req.files)
+        const { id } = req.params;
+        const result = await updateStockByIdService(id, req.body);
+        res.status(200).json({
+            status: 'success',
+            message: 'Stock updated successfully!'
+        })
     } catch (error) {
+        res.status(400).json({
+            status: 'fail',
+            message: "Couldn't update the stock",
+            error: error.message
+        })
+    }
+}
 
+exports.bulkUpdateStock = async (req, res, next) => {
+    try {
+        const result = await bulkUpdateStockService(req.body);
+        res.status(200).json({
+            status: 'success',
+            message: 'Stock updated successfully!'
+        })
+    } catch (error) {
+        res.status(400).json({
+            status: 'fail',
+            message: "Couldn't update the stock",
+            error: error.message
+        })
+    }
+}
+
+exports.deleteStockById = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const result = await deleteStockByIdService(id);
+
+        //--------------do this for checking if the stock exist. Do same for update
+        if (!result.deletedCount) {
+            return res.status(400).json({
+                status: "fail",
+                error: "Could not delete the stock"
+            })
+        }
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Stock deleted successfully!'
+        })
+    } catch (error) {
+        res.status(400).json({
+            status: 'fail',
+            message: "Couldn't delete the stock",
+            error: error.message
+        })
+    }
+}
+
+exports.bulkDeleteStock = async (req, res, next) => {
+    try {
+        const result = await bulkDeleteStockService(req.body.ids);
+        res.status(200).json({
+            status: 'success',
+            message: 'Given stocks deleted successfully'
+        })
+    } catch (error) {
+        res.status(400).json({
+            status: 'fail',
+            message: "Couldn't delete the given stocks",
+            error: error.message
+        })
     }
 }

@@ -1,4 +1,5 @@
 const Product = require('../models/Product')
+const Brand = require('../models/Brand')
 
 exports.getProductsService = async (filters, queries) => {
     const products = await Product
@@ -13,7 +14,14 @@ exports.getProductsService = async (filters, queries) => {
 }
 
 exports.createProductService = async (data) => {
-    const product = await Product.create(data)
+    const product = await Product.create(data);
+    //step 1 _id, brand
+    const { _id: productId, brand } = product;
+    //update brand
+    const res = await Brand.updateOne(
+        { _id: brand.id },
+        { $push: { products: productId } }
+    )
     return product;
 }
 
@@ -41,7 +49,7 @@ exports.bulkUpdateProductService = async (data) => {
     data.ids.forEach(product => {
         products.push(Product.updateOne({ _id: product.id }, product.data))
     })
-    const result = Promise.all(products);
+    const result = await Promise.all(products);
     return result;
 }
 

@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const { ObjectId } = mongoose.Schema.Types;
+const validator = require('validator');
 
 //schema design
 const productSchema = mongoose.Schema({
@@ -7,6 +9,7 @@ const productSchema = mongoose.Schema({
         required: [true, "Please provide a name for this product."],
         trim: true, //removes blank space before and after
         unique: [true, "Name must be unique"],
+        lowercase: true,
         minLength: [3, "Name must be atleast 3 characters."],
         maxLength: [100, "Name is too large"]
     },
@@ -14,43 +17,52 @@ const productSchema = mongoose.Schema({
         type: String,
         required: true,
     },
-    price: {
-        type: Number,
-        required: true,
-        min: [0, "Price cannot be negative"]
-    },
     unit: {
         type: String,
         required: true,
         enum: {
-            values: ["kg", "liter", "pcs"],
-            message: "unit value can't be {VALUE}, must be kg/liter/pcs"
+            values: ["kg", "liter", "pcs", "bag"],
+            message: "unit value can't be {VALUE}, must be kg/liter/pcs/bag"
         }
     },
-    quantity: {
-        type: Number,
-        required: true,
-        min: [0, "quantity can't be negative"],
-        validate: {
-            validator: (value) => {
-                const isInteger = Number.isInteger(value);
-                if (isInteger) {
-                    return true
-                } else {
-                    return false
-                }
-            }
-        },
-        message: "Quantity must be an integer"
-    },
-    status: {
+
+    imageURLs: [{
         type: String,
         required: true,
-        enum: {
-            values: ["in-stock", "out-of-stock", "discontinued"],
-            message: "status can't be {VALUE}"
+        validate: {
+            validator: (value) => {
+                if (!Array.isArray(value)) {
+                    return false;
+                }
+                let isValid = true;
+                value.forEach(url => {
+                    if (!validator.isURL(url)) {
+                        isValid = false;
+                    }
+                });
+                return isValid;
+            },
+            message: 'Please provide valid image URLs'
         }
+    }],
+
+    category: {
+        type: String,
+        required: true
     },
+
+    brand: {
+        name: {
+            type: String,
+            required: true,
+        },
+        id: {
+            type: ObjectId,
+            ref: 'Brand',
+            required: true
+        }
+    }
+
     // createdAt: {
     //   type: Date,
     //   default: Date.now,
@@ -86,16 +98,16 @@ productSchema.pre('save', function (next) {
     next()
 })
 
-productSchema.post('save', function (doc, next) {
-    console.log('after saving data');
+// productSchema.post('save', function (doc, next) {
+//     console.log('after saving data');
 
-    next()
-})
+//     next()
+// })
 
 //------------instance method
-productSchema.methods.logger = function () {
-    console.log(`data saved for name ${this.name}`)
-}
+// productSchema.methods.logger = function () {
+//     console.log(`data saved for name ${this.name}`)
+// }
 
 //SCHEMA -> MODEL -> QUERY
 
