@@ -3,12 +3,14 @@ const Brand = require('../models/Brand')
 
 exports.getProductsService = async (filters, queries) => {
     const products = await Product
-        .find({})
+        .find(filters)
         .select(queries.fields)
         .skip(queries.skip)
         .limit(queries.limit)
         .sort(queries.sortBy)
 
+    console.log(filters)
+    console.log(queries);
     const total = await Product.countDocuments(filters);
     const page = Math.ceil(total / queries.limit);
     return { total, page, products };
